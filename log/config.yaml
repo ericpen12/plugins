@@ -1,0 +1,8 @@
+app:
+  mode: debug
+log:
+  level: "info"
+  filename: "examples.log"
+  max_size: 100
+  max_age: 30
+  max_backups: 7
