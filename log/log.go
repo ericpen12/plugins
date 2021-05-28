@@ -26,12 +26,6 @@ var (
 )
 
 func loadConfig() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./")
-	viper.AddConfigPath("./config/")
-	_ = viper.ReadInConfig()
-
 	if viper.GetString("log.level") != "" {
 		logLevel = viper.GetString("log.level")
 	}
