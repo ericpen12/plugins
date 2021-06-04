@@ -23,11 +23,13 @@ func TestInitLogWithYaml(t *testing.T) {
 	zap.L().Info("init log with a yaml file")
 }
 
-
 func TestInitLogWithoutYaml(t *testing.T) {
 	Init()
 	zap.L().Info("init log with a yaml file")
 }
 
-
-
+func Test_logPath(t *testing.T) {
+	level := "error"
+	ret := logPathWithAppNameAndLevel(level)
+	t.Log(ret)
+}

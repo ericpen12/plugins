@@ -2,7 +2,8 @@ app:
   mode: debug
 log:
   level: "info"
-  filename: "examples.log"
+  filename: "plugins.log"
+  log_path: /usr/local/var/log
   max_size: 100
   max_age: 30
   max_backups: 7
