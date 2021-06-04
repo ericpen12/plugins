@@ -25,7 +25,6 @@ func Connect() error {
 		"%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		c.user, c.password, c.host+":"+c.port, c.dbname)
 	Client, err = gorm.Open("mysql", dsn)
-	fmt.Println(dsn)
 	return err
 }
 
