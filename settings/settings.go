@@ -2,11 +2,13 @@ package settings
 
 import (
 	"github.com/spf13/viper"
+	"path/filepath"
+	"strings"
 )
 
 var (
 	httpPort = 9090
-	appName = ""
+	appName  = ""
 )
 
 func Init() error {
@@ -21,10 +23,25 @@ func Init() error {
 	return nil
 }
 
+var (
+	configName = "config"
+	configType = "yaml"
+	configPath = "./"
+)
+
+func SetConfigPath(path string) {
+	list := strings.Split(filepath.Base(path), ".")
+	configPath = filepath.Dir(path)
+	configName = list[0]
+	if len(list) > 1 {
+		configType = list[1]
+	}
+}
+
 func loadConfigFile() error {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./")
+	viper.SetConfigName(configName)
+	viper.SetConfigType(configType)
+	viper.AddConfigPath(configPath)
 	viper.AddConfigPath("./config/")
 	return viper.ReadInConfig()
 }
