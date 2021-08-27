@@ -6,17 +6,20 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
-	"strings"
+	"path"
 	"time"
 )
 
 const (
-	appModeDebug = "debug"
-	logLevelInfo = "info"
+	appModeDebug  = "debug"
+	logLevelInfo  = "info"
+	logLevelError = "error"
 )
 
 var (
+	appName    = "plugins"
 	logLevel   = logLevelInfo
+	logPath    = "/usr/local/var/log"
 	filename   = time.Now().Format("2006-06-01-15") + ".log"
 	maxSize    = 100
 	maxBackups = 7
@@ -51,28 +54,24 @@ func loadConfig() {
 
 func Init() {
 	loadConfig()
-	writeSyncer := getLogWriter()
-	errWriteSyncer := getErrLogWriter()
-	encoder := getEncoder()
-
 	level := zap.AtomicLevel{}
 	if err := level.UnmarshalText([]byte(logLevel)); err != nil {
 		level = zap.NewAtomicLevel()
 	}
+	writeSyncer := logWriter(logLevelInfo)
+	encoder := getEncoder()
 	var core zapcore.Core
 	if appMode == appModeDebug {
 		consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
 		core = zapcore.NewTee(
 			zapcore.NewCore(encoder, writeSyncer, level),
 			zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), zapcore.DebugLevel),
-			zapcore.NewCore(encoder, errWriteSyncer, zapcore.ErrorLevel),
+			zapcore.NewCore(encoder, logWriter(logLevelError), zapcore.ErrorLevel),
 		)
 	} else {
 		core = zapcore.NewCore(encoder, writeSyncer, level)
 	}
-
-	logger := zap.New(core, zap.AddCaller())
-	zap.ReplaceGlobals(logger)
+	zap.ReplaceGlobals(zap.New(core, zap.AddCaller()))
 }
 
 func getEncoder() zapcore.Encoder {
@@ -95,9 +94,9 @@ func getEncoder() zapcore.Encoder {
 	return zapcore.NewJSONEncoder(encoderConfig)
 }
 
-func getLogWriter() zapcore.WriteSyncer {
+func logWriter(level string) zapcore.WriteSyncer {
 	lumberJackLogger := &lumberjack.Logger{
-		Filename:   filename,
+		Filename:   logPathWithAppNameAndLevel(level),
 		MaxSize:    maxSize,
 		MaxBackups: maxBackups,
 		MaxAge:     maxAge,
@@ -106,13 +105,12 @@ func getLogWriter() zapcore.WriteSyncer {
 	return zapcore.AddSync(lumberJackLogger)
 }
 
-func getErrLogWriter() zapcore.WriteSyncer {
-	lumberJackLogger := &lumberjack.Logger{
-		Filename:   strings.TrimSuffix(filename, ".log") + ".err.log",
-		MaxSize:    maxSize,
-		MaxBackups: maxBackups,
-		MaxAge:     maxAge,
-		Compress:   compress,
+func logPathWithAppNameAndLevel(level string) string {
+	dir := path.Join(logPath, appName, level)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err = os.MkdirAll(dir, 0666); err != nil {
+			panic(err)
+		}
 	}
-	return zapcore.AddSync(lumberJackLogger)
+	return path.Join(dir, filename)
 }
