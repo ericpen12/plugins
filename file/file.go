@@ -13,7 +13,7 @@ func Mkdir(dir string) error {
 	return nil
 }
 
-func ReadAsLine(filename string, handle func(line string, err error)) {
+func ReadLine(filename string, handle func(line string, err error)) {
 	f, err := os.Open(filename)
 	if err != nil {
 		handle("", err)
