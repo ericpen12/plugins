@@ -1,16 +1,17 @@
 package file
 
 import (
-	"fmt"
 	"testing"
 )
 
-func TestName(t *testing.T) {
+func TestReadLine(t *testing.T) {
+	count := 1
 	ReadLine("file.go", func(line string, err error) {
 		if err != nil {
-			fmt.Println(err)
+			t.Error(err)
 			return
 		}
-		fmt.Println(line)
+		t.Logf("count: %d, content: %s", count, line)
+		count++
 	})
 }
